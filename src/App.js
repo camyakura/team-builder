@@ -1,6 +1,8 @@
-import logo from './logo.svg';
 import './App.css';
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
+import TeamMember from './components/TeamMember'
+import TeamMemberForm from './components/TeamMemberForm'
+import axios from './axios';
 
 const initialValues = {
   name:'',
@@ -9,24 +11,55 @@ const initialValues = {
 }
 
 function App() {
+
+  const [teamMember, setTeamMember] = useState([])
+
+  const [formValues, setFormValues] = useState(initialValues);
+
+  const updateForm = (inputName, inputValue) => {
+    setFormValues({ ...formValues, [inputName]:inputValue})
+  }
+
+  const submitForm = () => {
+    const newTeamMember ={
+      name: formValues.name.trim(),
+      email: formValues.email.trim(),
+      role: formValues.role
+    }
+    axios.post('fakeapi.com', newTeamMember)
+      .then(res => {
+        setTeamMember([res.data, ...teamMember])
+        setFormValues(initialValues)
+      })
+      .catch(err => console.log(err))
+  }
+
+  useEffect(() => {
+    axios.get('fakeapi.com')
+      .then(res => {
+        console.log(res.data)
+        setTeamMember(res.data);
+      })
+      .catch(err => console.log(err))
+  }, [])
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className='container'>
+      <h1>Team Member Form</h1>
+      <TeamMemberForm 
+        values={formValues}
+        update={updateForm}
+        submit={submitForm}
+      />
+      {
+        teamMember.map(member => {
+          return (
+            <TeamMember key={member.id} details={member} />
+          )
+        })
+      }
     </div>
-  );
+  )
 }
 
 export default App;
